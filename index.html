@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <link rel="stylesheet" href="style.css" />
+
+    <title>Online Plagiarism Checker</title>
+</head>
+<body>
+
+<div class="container">
+    <h2>PLAGIESCAN</h2>
+
+    <!-- File Upload -->
+    <form action="dev.php" method="post" enctype="multipart/form-data" class="upload-box">
+        <input type="file" name="file" id="fileInput" style="display: none;" />
+        <button type="button" class="upload-btn" onclick="document.getElementById('fileInput').click()">Choose File</button>
+        <p id="fileName">No file selected</p>
+        <button type="submit" class="start-btn">Upload & Check</button>
+    </form>
+
+    <!-- Text Input -->
+    <textarea id="textInput" placeholder="Or paste your text here..."></textarea>
+
+    <!-- OCR from camera (mobile only) -->
+    <button class="scan-btn" onclick="openCamera()">📷 Scan with Camera</button>
+
+    <!-- Controls -->
+    <div class="file-options">
+        <span onclick="clearText()">🗑 Clear</span>
+        <span onclick="copyText()">📋 Copy</span>
+    </div>
+
+    <!-- Plagiarism Check -->
+    <button class="check-btn" onclick="checkPlagiarism()">Check Plagiarism</button>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@4.0.2/dist/tesseract.min.js"></script>
+<script src="dev.js"></script>
+<script>
+// Global variable to store OCR language
+let ocrLanguage = 'eng';
+
+function changeOcrLanguage() {
+    ocrLanguage = document.getElementById('ocrLanguage').value;
+}
+
+function clearText() {
+    document.getElementById("textInput").value = "";
+    document.getElementById("fileInput").disabled = false;
+}
+
+function copyText() {
+    let textArea = document.getElementById("textInput");
+    textArea.select();
+    document.execCommand("copy");
+    alert("Text copied!");
+}
+
+// Show selected file name
+document.getElementById("fileInput").addEventListener("change", function () {
+    let fileName = this.files.length > 0 ? this.files[0].name : "No file selected";
+    document.getElementById("fileName").textContent = fileName;
+});
+
+function checkPlagiarism() {
+    let text = document.getElementById("textInput").value;
+    if (text.trim() === "") {
+        alert("Please enter or scan text to check for plagiarism.");
+        return;
+    }
+     let plagiarismScore = calculatePlagiarismScore(text);
+    alert(`Plagiarism Score: ${plagiarismScore}%`);
+}
+
+function calculatePlagiarismScore(text) {
+let mockScore = Math.floor(Math.random() * 101); 
+return mockScore;
+}
+Explanation:
+
+    fetch("check_plagiarism.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: "text=" + encodeURIComponent(text)
+    })
+    .then(response => response.text())
+    .then(data => alert("Plagiarism Check Result:\n" + data))
+    .catch(error => console.error("Error:", error));
+
+
+
+function openCamera() {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+    input.capture = "environment"; // back camera
+    input.onchange = () => {
+        const file = input.files[0];
+        if (file) {
+            Tesseract.recognize(
+                file,
+                ocrLanguage,
+                { logger: m => console.log(m) }
+            ).then(({ data: { text } }) => {
+                document.getElementById("textInput").value = text.trim();
+                document.getElementById("fileInput").disabled = true;
+                alert("Text scanned! You can now check for plagiarism.");
+            }).catch(err => {
+                console.error(err);
+                alert("Failed to extract text.");
+            });
+        }
+    };
+    input.click();
+}
+</script>
+
+</body>
+</html>
